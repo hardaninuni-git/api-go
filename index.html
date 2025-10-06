@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Manajemen Pelanggan Laundry</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f9fc;
+      padding: 30px;
+    }
+    h1 {
+      color: #333;
+      text-align: center;
+    }
+    form {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+      max-width: 400px;
+      margin: 0 auto 30px auto;
+    }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      background: #007BFF;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    }
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+      text-align: left;
+    }
+    th {
+      background: #007BFF;
+      color: white;
+    }
+    td button {
+      background: #dc3545;
+      border: none;
+      color: white;
+      padding: 5px 10px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    td button:hover {
+      background: #b02a37;
+    }
+  </style>
+</head>
+<body>
+  <h1>📋 Manajemen Pelanggan</h1>
+
+  <form id="customerForm">
+    <input type="text" id="name" placeholder="Nama Pelanggan" required>
+    <input type="text" id="phone" placeholder="Nomor Telepon" required>
+    <input type="text" id="address" placeholder="Alamat" required>
+    <button type="submit">Tambah Pelanggan</button>
+  </form>
+
+  <table id="customerTable">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nama</th>
+        <th>Telepon</th>
+        <th>Alamat</th>
+        <th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const apiBase = "http://localhost:8080/api/customers";
+    const tableBody = document.querySelector("#customerTable tbody");
+    const form = document.getElementById("customerForm");
+
+    async function loadCustomers() {
+      const res = await fetch(apiBase);
+      const data = await res.json();
+      tableBody.innerHTML = "";
+      data.forEach(cust => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${cust.id}</td>
+          <td>${cust.name}</td>
+          <td>${cust.phone}</td>
+          <td>${cust.address}</td>
+          <td><button onclick="deleteCustomer(${cust.id})">Hapus</button></td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = document.getElementById("name").value.trim();
+      const phone = document.getElementById("phone").value.trim();
+      const address = document.getElementById("address").value.trim();
+
+      if (!name || !phone || !address) return alert("Semua field wajib diisi!");
+
+      await fetch(apiBase, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, phone, address })
+      });
+
+      form.reset();
+      loadCustomers();
+    });
+
+    async function deleteCustomer(id) {
+      if (!confirm("Yakin ingin menghapus pelanggan ini?")) return;
+      await fetch(`${apiBase}/${id}`, { method: "DELETE" });
+      loadCustomers();
+    }
+
+    loadCustomers();
+  </script>
+</body>
+</html>
